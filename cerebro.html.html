@@ -1,0 +1,160 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>CEREBRO HIDRO</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--tx:#14202b;--mu:#5b6b7a;--bd:#d3dae1;--ac:#0b6e99;--ok:#1f9d55;--wa:#e0a100;--er:#d64545;--em:#e4e9ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1720;--card:#18232f;--tx:#e7edf2;--mu:#93a3b3;--bd:#2c3b4a;--ac:#38b2e0;--em:#223140}}
+:root[data-theme=dark]{--bg:#0f1720;--card:#18232f;--tx:#e7edf2;--mu:#93a3b3;--bd:#2c3b4a;--ac:#38b2e0;--em:#223140}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-wrap:wrap}
+header b{font-size:18px;color:var(--ac)}header span{color:var(--mu);font-size:13px;flex:1}
+main{max-width:1100px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+h3,h4{margin:0 0 8px}.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.b{min-height:48px;padding:0 16px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-weight:600;cursor:pointer}
+.b.on,.b.p{background:var(--ac);color:#fff;border-color:var(--ac)}.b.d{background:var(--er);color:#fff;border-color:var(--er)}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+input,select,textarea{width:100%;min-height:48px;padding:8px 10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:16px}
+input[type=checkbox]{width:22px;min-height:22px;vertical-align:middle;margin-right:8px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}.k small{color:var(--mu)}.k div{font-size:22px;font-weight:700}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:600}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.u{border:1px solid var(--bd);border-radius:10px;padding:8px}.u h4{font-size:14px;text-align:center;margin-bottom:6px}
+.pr{display:flex;gap:3px;margin-bottom:3px;align-items:center}.pr small{width:20px;color:var(--mu);font-size:11px}
+.c{flex:1;min-width:0;min-height:38px;border-radius:6px;border:1px solid var(--bd);font-size:13px;font-weight:600;cursor:pointer;color:var(--tx);background:var(--em)}
+.c.f{background:var(--ok);color:#fff;border-color:var(--ok)}.c.r{background:var(--wa);color:#000;border-color:var(--wa)}.c.s{outline:3px solid var(--ac)}
+.lg{display:flex;gap:12px;font-size:13px;color:var(--mu);margin-bottom:8px;flex-wrap:wrap}.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+#t{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#t div{padding:12px 14px;border-radius:10px;color:#fff;font-weight:600;background:var(--er)}#t div.ok{background:var(--ok)}
+.tag{padding:2px 8px;border-radius:99px;background:var(--em);font-size:12px}.w{color:var(--er);font-weight:700}
+.login{max-width:420px;margin:8vh auto}.login .b{width:100%;margin-top:14px}
+</style></head><body>
+<div id="app"></div><div id="t"></div>
+<script>
+/* ====== CONFIGURA AQUÍ (Supabase → Project Settings → API) ====== */
+const SB_URL='https://juzotvrvrbkmwxdqrony.supabase.co', SB_KEY='sb_publishable_dLF_1AAnfEsOBSBnjWXrkw_9Yd3zG3K';
+/* ================================================================ */
+let sb,S=null,U=null,ui={tab:'',cam:1,car:1,sel:null,pre:null,q:'',cart:[],eh:null,guia:null};
+const $=id=>document.getElementById(id),v=id=>$(id).value,n=id=>parseFloat(v(id))||0;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/Lima'}),fmt=x=>Math.round(x*10)/10,sum=a=>a.reduce((x,y)=>x+y,0);
+const cf=c=>S.cfg[c],secs=c=>cf(c).secs.split('').filter(Boolean);
+const exk=(c,r,s,p)=>[c,r,s||'-',p].join('|'),pk=(c,r,s,p,x)=>[c,r,s||'-',p,x].join('|');
+const nPar=(c,r,s,p)=>cf(c).par+(S.ex[exk(c,r,s,p)]||0);
+const lab=k=>{const[a,r,s,p,x]=k.split('|');return`Cám ${a} · Carril ${r}${s!='-'?' · Secc '+s:''} · Piso ${p} · Parih ${x}`};
+function valid(k){const a=k.split('|'),c=+a[0],C=S.cfg[c];if(!C)return false;const r=+a[1],p=+a[3],x=+a[4],I=Number.isInteger;
+return I(r)&&r>=1&&r<=C.car&&I(p)&&p>=1&&p<=C.pisos&&I(x)&&x>=1&&x<=nPar(c,r,a[2],p)&&(C.secs?a[2].length==1&&C.secs.includes(a[2]):a[2]=='-')}
+const allItems=()=>[].concat(...Object.entries(S.inv).map(([k,a])=>a.map(i=>({...i,k}))));
+const findItem=id=>{for(const[k,a]of Object.entries(S.inv)){const i=a.find(z=>z.id==id);if(i)return{k,i}}};
+const total=c=>{const C=cf(c);return(secs(c).length||1)*C.car*C.pisos*C.par+sum(Object.entries(S.ex).filter(([k])=>k.split('|')[0]==c).map(x=>x[1]))};
+const stk=c=>sum(allItems().filter(i=>i.k.split('|')[0]==c).map(i=>i.kg)),occ=c=>Object.keys(S.inv).filter(k=>k.split('|')[0]==c).length;
+function toast(m,ok){const d=document.createElement('div');d.textContent=m;if(ok)d.className='ok';$('t').appendChild(d);setTimeout(()=>d.remove(),5000)}
+const disp=l=>fmt(l.neto-l.usado),opts=(a,s)=>a.map(x=>`<option ${x==s?'selected':''}>${esc(x)}</option>`).join('');
+const log=(t,o,d,det)=>sb.from('movimientos').insert({tipo:t,origen:o,destino:d,detalle:det,usuario_nombre:U.name});
+async function db(p,ok){const{error}=await p;if(error){toast(error.message);return false}if(ok)toast(ok,1);await load();return true}
+/* ===== CARGA DESDE SUPABASE ===== */
+async function load(){const q=t=>sb.from(t).select('*');
+const r=await Promise.all([q('catalogo').order('id'),q('config_camaras'),q('extras'),q('reservas'),q('lotes').order('fecha').order('id'),q('inventario'),sb.from('movimientos').select('*').order('creado_en',{ascending:false}).limit(300),q('embarques').order('id')]);
+const e=r.find(x=>x.error);if(e)return toast(e.error.message);const[cat,cfg,ex,res,lo,inv,mov,emb]=r.map(x=>x.data);
+S={cfg:{},ex:{},res:{},inv:{},esp:[],cor:[],cli:[],lotes:[],mov:[],emb:[]};
+cat.forEach(c=>S[c.tipo].push(c.nombre));cfg.forEach(c=>S.cfg[c.cam]={car:c.carriles,secs:c.secciones,pisos:c.pisos,par:c.par});
+ex.forEach(x=>S.ex[x.clave]=x.extra);res.forEach(x=>S.res[x.posicion]=1);
+S.lotes=lo.map(l=>({id:l.id,fecha:l.fecha,turno:l.turno,esp:l.especie,cor:l.corte,bruto:+l.kg_brutos,neto:+l.kg_netos,merma:+l.merma,obs:l.obs,usado:+l.usado,by:l.creado_nombre}));
+inv.forEach(i=>(S.inv[i.posicion]=S.inv[i.posicion]||[]).push({id:i.id,lote:i.lote_id,cli:i.cliente,desc:i.presentacion,kg:+i.kg,cajas:i.cajas,fecha:i.fecha}));
+S.mov=mov.map(m=>({t:m.tipo,o:m.origen,d:m.destino,det:m.detalle,by:m.usuario_nombre,at:new Date(m.creado_en).toLocaleString('es-PE',{timeZone:'America/Lima'})}));
+S.emb=emb.map(g=>({n:g.numero,cli:g.cliente,cont:g.contenedor,fecha:g.fecha,lines:g.lineas,kg:+g.kg,by:g.creado_nombre}));R()}
+/* ===== LOGIN ===== */
+async function init(){if(!SB_URL.startsWith('http')){$('app').innerHTML='<div class=login><div class=card><h3>Falta configurar</h3><p>Pega tu Project URL y tu clave pública de Supabase al inicio del archivo (SB_URL y SB_KEY).</p></div></div>';return}
+sb=supabase.createClient(SB_URL,SB_KEY);const{data}=await sb.auth.getSession();data.session?await enter():R()}
+async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:v('em').trim(),password:v('pw')});if(error)return toast('Error: '+error.message);await enter()}
+async function enter(){const{data:{user}}=await sb.auth.getUser();const{data:p}=await sb.from('perfiles').select('nombre,rol').eq('id',user.id).maybeSingle();
+if(!p){toast('Tu usuario aún no tiene un rol asignado.');await sb.auth.signOut();return R()}U={name:p.nombre,role:p.rol};ui.tab={prod:'ingreso',cam:'mapa',adm:'dash'}[U.role];await load()}
+async function logout(){await sb.auth.signOut();U=null;S=null;R()}
+const R=()=>{$('app').innerHTML=U&&S?shell():loginV()};
+const loginV=()=>`<div class=login><div class=card><h3 style="color:var(--ac)">CEREBRO HIDRO</h3><p style="color:var(--mu)">Gestión de Planta de Congelado</p><label>Correo</label><input id=em type=email autocomplete=username autocapitalize=none autocorrect=off spellcheck=false><label>Contraseña</label><input id=pw type=password autocomplete=current-password onkeydown="if(event.key=='Enter')doLogin()"><button class="b p" onclick=doLogin()>Ingresar</button></div></div>`;
+function tabs(a){return'<div class=row>'+a.map(([k,t])=>`<button class="b ${ui.tab==k?'on':''}" onclick="ui.tab='${k}';R()">${t}</button>`).join('')+'</div>'}
+function shell(){let h=`<header><b>CEREBRO HIDRO</b><span>${esc(U.name)}</span><button class=b onclick="load()">↻</button><button class=b onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme=='dark'?'light':'dark'">◐</button><button class=b onclick="logout()">Salir</button></header><main>`;
+if(U.role=='prod')h+=tabs([['ingreso','Ingreso diario'],['lotes','Lotes y stock']])+(ui.tab=='ingreso'?prodForm():lotesV());
+if(U.role=='cam')h+=tabs([['mapa','Mapa cámaras'],['recibir','Recibir'],['mover','Mover'],['emb','Embarque']])+({mapa:mapa,recibir:recibir,mover:mover,emb:embV})[ui.tab]();
+if(U.role=='adm')h+=tabs([['dash','Dashboard'],['inv','Inventarios'],['tr','Trazabilidad'],['cat','Catálogos'],['aud','Auditoría']])+({dash:dash,inv:invV,tr:traceBox,cat:cat,aud:aud})[ui.tab]();
+return h+'</main>'}
+/* ===== PRODUCCIÓN ===== */
+function prodForm(){return`<div class=card><h3>Ingreso de Producción Diaria</h3><div class=fg>
+<div><label>Fecha</label><input id=f type=date value="${today()}"></div><div><label>Turno</label><select id=tu><option>Día</option><option>Noche</option></select></div>
+<div><label>Especie</label><select id=es>${opts(S.esp)}</select></div><div><label>Tipo de corte</label><select id=co>${opts(S.cor)}</select></div>
+<div><label>Kg brutos ingresados</label><input id=kb type=number min=0 oninput=mer()></div><div><label>Kg netos procesados</label><input id=kn type=number min=0 oninput=mer()></div>
+<div><label>% Merma</label><input id=me readonly placeholder="auto"></div><div><label>Lote asignado</label><input id=lo readonly value="${nextLote()}"></div></div>
+<label>Observaciones</label><textarea id=ob rows=2></textarea><div class=row style="margin-top:12px"><button class="b p" onclick=saveProd()>Guardar producción</button></div></div>`}
+function nextLote(){const t=today(),p=t.slice(5,7)+t.slice(8,10);return`L-${p}-${String(S.lotes.filter(l=>l.id.startsWith('L-'+p)).length+1).padStart(2,'0')}`}
+function mer(){const b=n('kb'),x=n('kn');$('me').value=b?fmt((b-x)/b*100)+' %':''}
+async function saveProd(){const b=n('kb'),x=n('kn');if(b<=0||x<=0)return toast('Ingresa kg brutos y netos');if(x>b)return toast('Los kg netos no pueden superar a los brutos');
+const id=v('lo');if(await db(sb.from('lotes').insert({id,fecha:v('f'),turno:v('tu'),especie:v('es'),corte:v('co'),kg_brutos:b,kg_netos:x,merma:fmt((b-x)/b*100),obs:v('ob'),creado_nombre:U.name}),'Lote '+id+' guardado: stock disponible para congelar'))log('ingreso_produccion','Planta','Stock por congelar',`${id} · ${x} kg`)}
+function lotesV(){return`<div class=card><h3>Lotes y stock disponible para congelar</h3><div class=tw><table><tr><th>Lote</th><th>Fecha</th><th>Especie</th><th>Corte</th><th>Netos</th><th>Merma</th><th>Disponible</th></tr>`+S.lotes.slice().reverse().map(l=>`<tr><td>${l.id}</td><td>${l.fecha}</td><td>${l.esp}</td><td>${l.cor}</td><td>${l.neto}</td><td>${l.merma}%</td><td><b>${disp(l)} kg</b></td></tr>`).join('')+`</table></div></div>`}
+/* ===== MAPA ===== */
+function mapa(){const c=ui.cam,C=cf(c),ss=secs(c);if(ui.car>C.car)ui.car=1;
+let h=`<div class=card><div class=row>`+[1,2].map(x=>`<button class="b ${c==x?'on':''}" onclick="ui.cam=${x};ui.sel=null;R()">CÁMARA ${x} (${occ(x)}/${total(x)})</button>`).join('')+`</div>`;
+if(ss.length)h+=`<div class=row>`+[...Array(C.car)].map((_,i)=>`<button class="b ${ui.car==i+1?'on':''}" onclick="ui.car=${i+1};ui.sel=null;R()">Carril ${i+1}</button>`).join('')+`</div>`;
+h+=`<div class=lg><span><i style="background:var(--em)"></i>Vacía</span><span><i style="background:var(--ok)"></i>Con producto (+ = varios)</span><span><i style="background:var(--wa)"></i>Reservada</span></div><div class=units>`;
+const U2=ss.length?ss.map(s=>[ui.car,s,'Sección '+s]):[...Array(C.car)].map((_,i)=>[i+1,'-','Carril '+(i+1)]);
+U2.forEach(([r,s,t])=>{h+=`<div class=u><h4>${t}</h4>`;for(let p=C.pisos;p>=1;p--){h+=`<div class=pr><small>P${p}</small>`;for(let x=1;x<=nPar(c,r,s,p);x++){const k=pk(c,r,s,p,x),a=S.inv[k];h+=`<button class="c ${a?'f':S.res[k]?'r':''} ${ui.sel==k?'s':''}" onclick="ui.sel='${k}';R()">${x}${a&&a.length>1?'+':''}</button>`}h+='</div>'}h+='</div>'});
+h+='</div>';
+if(ui.sel){const k=ui.sel,a=S.inv[k]||[],[,r,s,p,x]=k.split('|'),e=exk(c,r,s,p);h+=`<div class=card><h3>${lab(k)}</h3>`+(a.length?a.map(i=>`<p><b>${i.lote}</b> · ${esc(i.desc)} · ${esc(i.cli)}<br>${i.kg} kg · ${i.cajas} cajas · ingreso ${i.fecha}</p>`).join(''):`<p>${S.res[k]?'Reservada':'Vacía'}</p>`)+`<div class=row><button class="b p" onclick="go('recibir','${k}')">Recibir / agregar producto</button>`+(a.length?`<button class="b p" onclick="go('mover','${k}')">Mover</button><button class="b p" onclick="go('emb','${k}')">Embarcar</button>`:`<button class=b onclick="resv('${k}')">${S.res[k]?'Quitar reserva':'Reservar'}</button>`)+`<button class=b onclick="addPar('${e}')">+ Parihuela en este piso</button>`+(+x>C.par&&+x==nPar(c,r,s,p)&&!a.length?`<button class="b d" onclick="delPar('${k}')">− Quitar esta parihuela</button>`:'')+`</div></div>`}
+return h+traceBox()}
+function go(t,k){ui.tab=t;ui.pre=k;R()}
+async function resv(k){await db(S.res[k]?sb.from('reservas').delete().eq('posicion',k):sb.from('reservas').insert({posicion:k}))}
+async function addPar(e){if(await db(sb.from('extras').upsert({clave:e,extra:(S.ex[e]||0)+1}),'Parihuela agregada'))log('estructura','Cámara',e,'+1 parihuela')}
+async function delPar(k){const[c,r,s,p]=k.split('|'),e=exk(c,r,s,p),x=S.ex[e]-1;ui.sel=null;if(await db(x>0?sb.from('extras').update({extra:x}).eq('clave',e):sb.from('extras').delete().eq('clave',e),'Parihuela quitada'))log('estructura',lab(k),'-','parihuela quitada')}
+/* ===== POSICIONES ===== */
+function posIn(p,k){const a=k?k.split('|'):['1','1','A','1','1'],c=+a[0],ss=secs(c);
+return`<div class=fg><div><label>Cámara</label><select id=${p}c onchange="secT('${p}')">${opts([1,2],c)}</select></div><div><label>Carril</label><input id=${p}r type=number min=1 value=${a[1]}></div><div id=${p}w style="display:${ss.length?'':'none'}"><label>Sección</label><select id=${p}s>${opts(ss,a[2])}</select></div><div><label>Piso</label><input id=${p}p type=number min=1 value=${a[3]}></div><div><label>Parihuela</label><input id=${p}x type=number min=1 value=${a[4]}></div></div>`}
+function secT(p){const ss=secs(+v(p+'c'));$(p+'w').style.display=ss.length?'':'none';$(p+'s').innerHTML=opts(ss,ss[0])}
+function readPos(p){const c=+v(p+'c'),ss=secs(c),k=pk(c,n(p+'r'),ss.length?v(p+'s'):'-',n(p+'p'),n(p+'x'));return valid(k)?k:null}
+const itemSel=(id,k)=>{const it=allItems(),sel=it.find(i=>i.k==k);return`<label>Producto en cámara</label><select id=${id}>`+it.map(i=>`<option value="${i.id}" ${sel&&sel.id==i.id?'selected':''}>${lab(i.k)} — ${i.lote} ${esc(i.desc)} (${esc(i.cli)}) ${i.kg} kg</option>`).join('')+'</select>'};
+const mixBox=id=>`<label><input type=checkbox id=${id}>Permitir mezcla (otro producto/derivado/cliente en la misma parihuela)</label>`;
+function afterGo(k){ui.tab='mapa';ui.sel=k;ui.cam=+k[0];const a=k.split('|');if(a[2]!='-')ui.car=+a[1];R()}
+/* ===== RECIBIR / MOVER / EMBARCAR (la validación final la hace la base de datos) ===== */
+function recibir(){const L=S.lotes.filter(l=>disp(l)>0),k=ui.pre;ui.pre=null;
+return`<div class=card><h3>Recibir a congelación (agregar producto o derivado)</h3>`+(L.length?`<label>Lote (stock en producción)</label><select id=rl>${L.map(l=>`<option value="${l.id}">${l.id} · ${l.esp} ${l.cor} · ${disp(l)} kg</option>`).join('')}</select>
+<div class=fg><div><label>Cliente propietario</label><select id=rcl>${opts(S.cli)}</select></div><div><label>Presentación / derivado</label><select id=rd>${opts(S.cor)}</select></div></div><label>Ubicación</label>${posIn('q',k)}
+<div class=fg><div><label>Cajas / sacos</label><input id=rj type=number min=1></div><div><label>Kg totales</label><input id=rk type=number min=1></div></div>${mixBox('rm')}<div class=row style="margin-top:12px"><button class="b p" onclick=doRec()>Confirmar ingreso a cámara</button></div>`:'<p>No hay stock disponible en producción.</p>')+'</div>'}
+async function doRec(){const k=readPos('q');if(!k)return toast('Ubicación inválida (revisa carril, sección, piso o parihuela)');
+if(await db(sb.rpc('rpc_recibir',{p_lote:v('rl'),p_cli:v('rcl'),p_desc:v('rd'),p_pos:k,p_kg:n('rk'),p_cajas:Math.round(n('rj')),p_mezcla:$('rm').checked}),'Ingresado a '+lab(k)))afterGo(k)}
+function mover(){const k=ui.pre;ui.pre=null;return`<div class=card><h3>Mover producto entre parihuelas</h3>`+(allItems().length?`${itemSel('mo',k)}<label>Kg a mover (vacío = todo)</label><input id=mk type=number min=1><label style="margin-top:10px">Destino</label>${posIn('d')}${mixBox('mm')}<div class=row style="margin-top:12px"><button class="b p" onclick=doMov()>Mover</button></div>`:'<p>No hay producto en cámara.</p>')+'</div>'}
+async function doMov(){const f=findItem(v('mo')),d=readPos('d');if(!f)return toast('Producto no encontrado');if(!d)return toast('Destino inválido');
+if(await db(sb.rpc('rpc_mover',{p_item:f.i.id,p_kg:n('mk'),p_dest:d,p_mezcla:$('mm').checked}),'Movido a '+lab(d)))afterGo(d)}
+function embV(){const k=ui.pre;ui.pre=null;const h=ui.eh||{cli:S.cli[0],cont:'',fecha:today()};
+return`<div class=card><h3>Salida por embarque</h3><div class=fg><div><label>Cliente destino</label><select id=ec>${opts(S.cli,h.cli)}</select></div><div><label>N° contenedor</label><input id=ek value="${esc(h.cont)}"></div><div><label>Fecha embarque</label><input id=ef type=date value="${h.fecha}"></div></div>
+<h4 style="margin-top:14px">Líneas de la guía (puedes embarcar varios productos/derivados)</h4>`+(allItems().length?`${itemSel('eo',k)}<label>Kg a despachar</label><input id=eg type=number min=1><div class=row style="margin-top:10px"><button class=b onclick=addL()>+ Agregar línea</button></div>`:'<p>No hay producto en cámara.</p>')+cartV()+`<div class=row><button class="b p" onclick=doEmb()>Registrar salida y generar guía</button></div></div>`+(ui.guia?guiaV(ui.guia):'')+embTbl()}
+const saveH=()=>{if($('ec'))ui.eh={cli:v('ec'),cont:v('ek'),fecha:v('ef')}};
+function cartV(){return ui.cart.length?`<div class=tw><table><tr><th>Posición</th><th>Producto</th><th>Kg</th><th></th></tr>`+ui.cart.map((l,j)=>{const f=findItem(l.id);return f?`<tr><td>${lab(f.k)}</td><td>${f.i.lote} ${esc(f.i.desc)}</td><td>${l.kg}</td><td><button class=b onclick="ui.cart.splice(${j},1);saveH();R()">✕</button></td></tr>`:''}).join('')+'</table></div>':''}
+function addL(){saveH();const f=findItem(v('eo')),kg=n('eg');if(!f)return toast('Producto no encontrado');if(kg<=0)return toast('Indica los kg');
+const ya=sum(ui.cart.filter(l=>l.id==f.i.id).map(l=>l.kg));if(kg+ya>f.i.kg)return toast(`Sin stock: solo hay ${fmt(f.i.kg-ya)} kg disponibles en esa posición`);ui.cart.push({id:f.i.id,kg});R()}
+async function doEmb(){saveH();const h=ui.eh;if(!h.cont.trim())return toast('Indica el N° de contenedor');if(!ui.cart.length)return toast('Agrega al menos una línea');
+const{data,error}=await sb.rpc('rpc_embarcar',{p_cli:h.cli,p_cont:h.cont,p_fecha:h.fecha,p_lineas:ui.cart.map(l=>({id:l.id,kg:l.kg}))});if(error)return toast(error.message);
+ui.cart=[];ui.eh=null;toast('Guía '+data+' generada',1);await load();ui.guia=S.emb.find(g=>g.n==data);R()}
+const guiaV=g=>g?`<div class=card style="border:2px solid var(--ac)"><h3>Guía de embarque ${g.n}</h3><p>Destino: <b>${esc(g.cli)}</b> · Contenedor ${esc(g.cont)} · ${g.fecha}<br>Emitió: ${esc(g.by)}</p><div class=tw><table><tr><th>Lote</th><th>Producto</th><th>Propietario</th><th>Origen</th><th>Kg</th><th>Cajas</th></tr>`+g.lines.map(l=>`<tr><td>${l.lote}</td><td>${esc(l.desc)}</td><td>${esc(l.dueño)}</td><td>${lab(l.k)}</td><td>${l.kg}</td><td>${l.cajas}</td></tr>`).join('')+`</table></div><p><b>Total ${g.kg} kg</b></p></div>`:'';
+const embTbl=()=>`<div class=card><h3>Embarques</h3><div class=tw><table><tr><th>Guía</th><th>Fecha</th><th>Cliente</th><th>Cont.</th><th>Lotes</th><th>Kg</th></tr>`+S.emb.slice().reverse().map(g=>`<tr><td>${g.n}</td><td>${g.fecha}</td><td>${esc(g.cli)}</td><td>${esc(g.cont)}</td><td>${[...new Set(g.lines.map(l=>l.lote))].join(', ')}</td><td>${g.kg}</td></tr>`).join('')+`</table></div></div>`;
+/* ===== TRAZABILIDAD ===== */
+function traceBox(){return`<div class=card><h3>Trazabilidad por lote</h3><div class=row><input id=q placeholder="Ej: L-0501-01" value="${esc(ui.q)}" style="flex:1"><button class="b p" onclick="ui.q=v('q');R()">Buscar</button></div>${ui.q?traceRes(ui.q.trim().toUpperCase()):''}</div>`}
+function traceRes(q){const l=S.lotes.find(x=>x.id==q);if(!l)return'<p>Lote no encontrado.</p>';const p=allItems().filter(i=>i.lote==q),e=S.emb.flatMap(g=>g.lines.filter(x=>x.lote==q).map(x=>({...x,g})));
+return`<p><b>${l.id}</b> · ${l.esp} ${l.cor} · ${l.neto} kg netos · ${l.fecha}<br>En producción: ${disp(l)} kg</p>`+(p.length?'<b>En cámara:</b><br>'+p.map(i=>`${lab(i.k)} — ${esc(i.desc)} ${i.kg} kg (${esc(i.cli)})`).join('<br>'):'<p>No está en cámara.</p>')+(e.length?'<br><b>Embarcado:</b><br>'+e.map(x=>`${x.g.n} · ${esc(x.desc)} ${x.kg} kg → ${esc(x.g.cli)} · cont. ${esc(x.g.cont)} (${x.g.fecha})`).join('<br>'):'')}
+/* ===== ADMIN ===== */
+function dash(){const t=today(),d=new Date(t),sem=new Date(d-6*864e5).toISOString().slice(0,10),mes=t.slice(0,7);const P=f=>sum(S.lotes.filter(f).map(l=>l.neto));
+const B=sum(S.lotes.map(l=>l.bruto)),N=sum(S.lotes.map(l=>l.neto));
+const ven=allItems().map(i=>({...i,dias:Math.round((new Date(i.fecha).getTime()+365*864e5-d.getTime())/864e5)})).filter(x=>x.dias<=90).sort((a,b)=>a.dias-b.dias);
+const K2=(a,b)=>`<div class=k><small>${a}</small><div>${b}</div></div>`;
+return`<div class=kpis>${K2('Producción hoy',P(l=>l.fecha==t)+' kg')}${K2('Últ. 7 días',P(l=>l.fecha>=sem)+' kg')}${K2('Mes',P(l=>l.fecha.startsWith(mes))+' kg')}${K2('Stock Cámara 1',fmt(stk(1))+' kg')}${K2('Stock Cámara 2',fmt(stk(2))+' kg')}${K2('Parihuelas C1',occ(1)+'/'+total(1))}${K2('Parihuelas C2',occ(2)+'/'+total(2))}${K2('Merma total',fmt(B-N)+' kg ('+(B?fmt((B-N)/B*100):0)+'%)')}</div>
+${stockCli()}<div class=card><h3>Próximo a vencer (vida útil 12 meses, alerta ≤ 90 días)</h3>`+(ven.length?`<div class=tw><table><tr><th>Posición</th><th>Lote</th><th>Cliente</th><th>Kg</th><th>Días</th></tr>`+ven.map(x=>`<tr><td>${lab(x.k)}</td><td>${x.lote}</td><td>${esc(x.cli)}</td><td>${x.kg}</td><td class=w>${x.dias}</td></tr>`).join('')+'</table></div>':'<p>Sin alertas.</p>')+'</div>'}
+function stockCli(){const I=allItems(),f=(c,m)=>fmt(sum(I.filter(i=>i.cli==c&&i.k.split('|')[0]==m).map(i=>i.kg)));return`<div class=card><h3>Stock por cliente (propietario)</h3><div class=tw><table><tr><th>Cliente</th><th>Cám 1 (kg)</th><th>Cám 2 (kg)</th><th>Total</th></tr>`+S.cli.map(c=>`<tr><td>${esc(c)}</td><td>${f(c,1)}</td><td>${f(c,2)}</td><td><b>${fmt(f(c,1)+f(c,2))}</b></td></tr>`).join('')+'</table></div></div>'}
+function invV(){return`<div class=card><h3>Inventario de PLANTA (por congelar)</h3><div class=tw><table><tr><th>Lote</th><th>Especie</th><th>Corte</th><th>Netos</th><th>Disponible</th></tr>`+S.lotes.map(l=>`<tr><td>${l.id}</td><td>${l.esp}</td><td>${l.cor}</td><td>${l.neto}</td><td>${disp(l)} kg</td></tr>`).join('')+`</table></div></div>${stockCli()}<div class=card><h3>Detalle en cámaras</h3><div class=tw><table><tr><th>Posición</th><th>Lote</th><th>Producto</th><th>Cliente</th><th>Kg</th><th>Cajas</th><th>Ingreso</th></tr>`+allItems().map(i=>`<tr><td>${lab(i.k)}</td><td>${i.lote}</td><td>${esc(i.desc)}</td><td>${esc(i.cli)}</td><td>${i.kg}</td><td>${i.cajas}</td><td>${i.fecha}</td></tr>`).join('')+'</table></div></div>'+embTbl()}
+const cfgBox=c=>{const C=cf(c);return`<div class=card><h3>Estructura Cámara ${c}</h3><div class=fg><div><label>Carriles</label><input id=g${c}c type=number min=1 value=${C.car}></div><div><label>Pisos de altura</label><input id=g${c}p type=number min=1 value=${C.pisos}></div><div><label>Parihuelas por piso</label><input id=g${c}x type=number min=1 value=${C.par}></div><div><label>Secciones (letras, vacío = sin)</label><input id=g${c}s value="${C.secs}"></div></div><div class=row style="margin-top:10px"><button class="b p" onclick=saveCfg(${c})>Guardar estructura</button></div></div>`};
+async function saveCfg(c){const o=S.cfg[c],N={car:n(`g${c}c`),pisos:n(`g${c}p`),par:n(`g${c}x`),secs:v(`g${c}s`).toUpperCase().replace(/[^A-Z]/g,'')};if(N.car<1||N.pisos<1||N.par<1)return toast('Valores inválidos');
+S.cfg[c]=N;const ok=Object.keys(S.inv).every(k=>valid(k));S.cfg[c]=o;if(!ok)return toast('Hay producto en posiciones que quedarían fuera de la nueva estructura');
+if(await db(sb.from('config_camaras').update({carriles:N.car,pisos:N.pisos,par:N.par,secciones:N.secs}).eq('cam',c),'Estructura guardada'))log('estructura','Cámara '+c,'-','estructura modificada')}
+function cat(){const box=(t,k)=>`<div class=card><h3>${t}</h3><p>${S[k].map(x=>`<span class=tag>${esc(x)}</span>`).join(' ')}</p><div class=row><input id=a_${k} placeholder="Nuevo" style="flex:1"><button class="b p" onclick="addC('${k}')">Agregar</button></div></div>`;
+return box('Especies','esp')+box('Tipos de corte / derivados','cor')+box('Clientes','cli')+cfgBox(1)+cfgBox(2)+`<div class=card><h3>Usuarios</h3><p>Los usuarios y sus roles se administran en Supabase (Authentication y tabla perfiles).</p></div>`}
+async function addC(k){const x=v('a_'+k).trim();if(!x)return;if(S[k].includes(x))return toast('Ya existe');await db(sb.from('catalogo').insert({tipo:k,nombre:x}))}
+function aud(){return`<div class=card><h3>Auditoría de movimientos (hora de Lima)</h3><div class=tw><table><tr><th>Cuándo</th><th>Quién</th><th>Tipo</th><th>Origen</th><th>Destino</th><th>Detalle</th></tr>`+S.mov.map(m=>`<tr><td>${m.at}</td><td>${esc(m.by)}</td><td>${m.t}</td><td>${esc(m.o)}</td><td>${esc(m.d)}</td><td>${esc(m.det)}</td></tr>`).join('')+'</table></div></div>'}
+init();
+</script></body></html>
